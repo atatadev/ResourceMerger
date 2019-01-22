@@ -1,9 +1,6 @@
 package oleksii.dankov.merger;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -31,7 +28,7 @@ public class ResourceMerger {
             DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
             Document mergedDocument = dbBuilder.newDocument();
             mergedDocument.setXmlStandalone(true);
-            Element root = mergedDocument.createElementNS( "urn:oasis:names:tc:xliff:document:1.2","resources");
+            Element root = createRootElement(mergedDocument);
             mergedDocument.appendChild(root);
 
             Map<String, Node> mergedValues = new TreeMap<>();
@@ -44,8 +41,10 @@ public class ResourceMerger {
 
                     for (int i = 0; i < values.getLength(); i++) {
                         Node item = values.item(i);
-//                        root.appendChild(mergedDocument.importNode(item, true));
-                        mergedValues.put(item.getNodeName(), item);
+                        if(item.getNodeType() == Node.ELEMENT_NODE) {
+                            String key = item.getAttributes().getNamedItem("name").getNodeValue();
+                            mergedValues.put(key, item);
+                        }
                     }
                 } catch (SAXException e) {
                     throw new ResourcesMergingException("Sax: Failed to parse file: " + file.getAbsolutePath(), e);
@@ -54,6 +53,7 @@ public class ResourceMerger {
                 }
             }
             for (Node value : mergedValues.values()) {
+                root.appendChild(mergedDocument.createTextNode("\n    "));
                 root.appendChild(mergedDocument.importNode(value, true));
             }
 
@@ -63,6 +63,14 @@ public class ResourceMerger {
             throw new ResourcesMergingException("Failed to create parsing configuration", e);
         }
 
+    }
+
+    private Element createRootElement(Document mergedDocument) {
+        Element root = mergedDocument.createElement("resources");
+        Attr xmlns = mergedDocument.createAttribute("xmlns:ns1");
+        xmlns.setValue("urn:oasis:names:tc:xliff:document:1.2");
+        root.getAttributes().setNamedItemNS(xmlns);
+        return root;
     }
 
 }
