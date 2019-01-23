@@ -40,7 +40,7 @@ public class CliArgumentHandler implements ArgumentsHandler {
 
     @Override
     public boolean allArgumentsPresent() {
-        boolean present = true;
+        boolean present;
         present = isArgumentPresent(LIBS_DIR_ARG_NAME);
         present = isArgumentPresent(OUTPUT_ARG_NAME);
         present = isArgumentPresent(APP_RES_DIR_ARG_NAME);
