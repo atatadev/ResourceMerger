@@ -25,17 +25,17 @@ public class CliArgumentHandler implements ArgumentsHandler {
 
     @Override
     public File getLibsDirectory() {
-        return new File(cmd.getOptionValue(LIBS_DIR_ARG_NAME));
+        return safeGetFile(LIBS_DIR_ARG_NAME);
     }
 
     @Override
     public File getOutputDirectory() {
-        return new File(cmd.getOptionValue(OUTPUT_ARG_NAME));
+        return safeGetFile(OUTPUT_ARG_NAME);
     }
 
     @Override
     public File getAppResDirectory() {
-        return new File(cmd.getOptionValue(APP_RES_DIR_ARG_NAME));
+        return safeGetFile(APP_RES_DIR_ARG_NAME);
     }
 
     @Override
@@ -52,6 +52,10 @@ public class CliArgumentHandler implements ArgumentsHandler {
             return false;
         }
         return true;
+    }
+
+    private File safeGetFile(String option) {
+        return cmd.hasOption(option) ? new File(cmd.getOptionValue(option)) : null;
     }
 
     private static Options getOptions() {
