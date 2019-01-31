@@ -40,11 +40,10 @@ public class CliArgumentHandler implements ArgumentsHandler {
 
     @Override
     public boolean allArgumentsPresent() {
-        boolean present;
-        present = verifyArgumentPresent(LIBS_DIR_ARG_NAME);
-        present = verifyArgumentPresent(OUTPUT_ARG_NAME);
-        present = verifyArgumentPresent(APP_RES_DIR_ARG_NAME);
-        return present;
+        boolean libs = verifyArgumentPresent(LIBS_DIR_ARG_NAME);
+        boolean output = verifyArgumentPresent(OUTPUT_ARG_NAME);
+        boolean appres = verifyArgumentPresent(APP_RES_DIR_ARG_NAME);
+        return libs && output && appres;
     }
 
     private boolean verifyArgumentPresent(String appResDirArgName) {
