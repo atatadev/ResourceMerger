@@ -1,74 +1,72 @@
 package oleksii.dankov;
 
 import oleksii.dankov.cli.ArgumentsHandler;
-import oleksii.dankov.filters.ValuesFilter;
 import oleksii.dankov.merger.ResourceMerger;
 import oleksii.dankov.merger.ResourcesMergingException;
+import oleksii.dankov.parser.DocumentsParser;
+import oleksii.dankov.parser.ResourceParsingException;
 import oleksii.dankov.writer.DocumentWriter;
 import oleksii.dankov.writer.DocumentWriterException;
-import org.apache.commons.cli.ParseException;
 import org.w3c.dom.Document;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class App {
     private final ArgumentsHandler argumentsHandler;
     private final DocumentWriter documentWriter;
     private final ResourceMerger resourceMerger;
+    private final DocumentsParser documentsParser;
 
-    public App(ArgumentsHandler argumentsHandler, DocumentWriter documentWriter, ResourceMerger resourceMerger) {
+    public App(
+            ArgumentsHandler argumentsHandler,
+            DocumentsParser documentsParser, ResourceMerger resourceMerger, DocumentWriter documentWriter) {
         this.argumentsHandler = argumentsHandler;
+        this.documentsParser = documentsParser;
         this.documentWriter = documentWriter;
         this.resourceMerger = resourceMerger;
+
+
     }
 
-    public void process() throws ResourcesMergingException, DocumentWriterException {
+    public void process() throws ResourcesMergingException, DocumentWriterException, ResourceParsingException {
         if (argumentsHandler.allArgumentsPresent()) {
-            Map<String, List<File>> filesByQualifier = getFilesToMerge(argumentsHandler);
-            for (Map.Entry<String, List<File>> filesForQualifier : filesByQualifier.entrySet()) {
+            Map<String, List<Document>> filesByQualifier = getDocumentsToMerge();
+            for (Map.Entry<String, List<Document>> filesForQualifier : filesByQualifier.entrySet()) {
                 Document mergedDocument = resourceMerger.mergeValues(filesForQualifier.getValue());
-                documentWriter.save(mergedDocument, createFileToSave(argumentsHandler, filesForQualifier));
+                documentWriter.save(mergedDocument, createFileToSave(filesForQualifier.getKey()));
             }
         }
     }
 
 
-    private File createFileToSave(ArgumentsHandler argumentsHandler, Map.Entry<String, List<File>> entry) {
+    private File createFileToSave(String entry) {
         String outputDirPath = argumentsHandler.getOutputDirectory().getAbsolutePath();
-        return new File(outputDirPath + "/" + entry.getKey() + "/values.xml");
+        return new File(outputDirPath + "/" + entry + "/values.xml");
     }
 
-    private Map<String, List<File>> getFilesToMerge(ArgumentsHandler argumentsHandler) {
+    private Map<String, List<Document>> getDocumentsToMerge() throws ResourceParsingException {
         File appResDirectory = argumentsHandler.getAppResDirectory();
         File[] libs = argumentsHandler.getLibsDirectory().listFiles();
-        return getFilesToMerge(appResDirectory, libs);
-    }
-
-    private Map<String, List<File>> getFilesToMerge(File appResDirectory, File[] libs) {
-        HashMap<String, List<File>> filesByQualifier = new HashMap<>();
-        for (File lib :libs) {
-            File res = new File(lib.getAbsolutePath() + "/res");
-            if (res.exists()) {
-                handleResDirectory(filesByQualifier, res);
-            }
+        List<File> resourceDirs;
+        if (libs == null || libs.length == 0) {
+            resourceDirs = new ArrayList<>();
+        } else  {
+            resourceDirs = getLibsResourcesDirs(libs);
         }
-        handleResDirectory(filesByQualifier, appResDirectory);
-        return filesByQualifier;
+
+        resourceDirs.add(appResDirectory);
+        return documentsParser.parseDocuments(resourceDirs);
     }
 
-    private void handleResDirectory(HashMap<String, List<File>> valuesWithQualifiers, File res) {
-
-        ValuesFilter valuesFilter = new ValuesFilter();
-        File[] values = res.listFiles(valuesFilter);
-        for (File valuesDir : values) {
-            List<File> filesForQualifier = valuesWithQualifiers.get(valuesDir.getName());
-            filesForQualifier = filesForQualifier == null ? new ArrayList<>() : filesForQualifier;
-            File[] xmls = valuesDir.listFiles();
-            if (xmls != null) {
-                filesForQualifier.addAll(Arrays.asList(xmls));
-            }
-            valuesWithQualifiers.put(valuesDir.getName(), filesForQualifier);
-        }
+    private List<File> getLibsResourcesDirs(File[] libs) {
+        return Stream.of(libs)
+                .map(lib -> new File(lib.getAbsolutePath() + "/res"))
+                .filter(File::exists)
+                .collect(Collectors.toList());
     }
+
+
 }

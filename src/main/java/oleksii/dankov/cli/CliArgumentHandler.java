@@ -25,34 +25,37 @@ public class CliArgumentHandler implements ArgumentsHandler {
 
     @Override
     public File getLibsDirectory() {
-        return new File(cmd.getOptionValue(LIBS_DIR_ARG_NAME));
+        return safeGetFile(LIBS_DIR_ARG_NAME);
     }
 
     @Override
     public File getOutputDirectory() {
-        return new File(cmd.getOptionValue(OUTPUT_ARG_NAME));
+        return safeGetFile(OUTPUT_ARG_NAME);
     }
 
     @Override
     public File getAppResDirectory() {
-        return new File(cmd.getOptionValue(APP_RES_DIR_ARG_NAME));
+        return safeGetFile(APP_RES_DIR_ARG_NAME);
     }
 
     @Override
     public boolean allArgumentsPresent() {
-        boolean present;
-        present = isArgumentPresent(LIBS_DIR_ARG_NAME);
-        present = isArgumentPresent(OUTPUT_ARG_NAME);
-        present = isArgumentPresent(APP_RES_DIR_ARG_NAME);
-        return present;
+        boolean libs = verifyArgumentPresent(LIBS_DIR_ARG_NAME);
+        boolean output = verifyArgumentPresent(OUTPUT_ARG_NAME);
+        boolean appres = verifyArgumentPresent(APP_RES_DIR_ARG_NAME);
+        return libs && output && appres;
     }
 
-    private boolean isArgumentPresent(String appResDirArgName) {
+    private boolean verifyArgumentPresent(String appResDirArgName) {
         if (!cmd.hasOption(appResDirArgName)) {
             System.out.println( "-" + appResDirArgName + " is mandatory argument");
             return false;
         }
         return true;
+    }
+
+    private File safeGetFile(String option) {
+        return cmd.hasOption(option) ? new File(cmd.getOptionValue(option)) : null;
     }
 
     private static Options getOptions() {

@@ -2,18 +2,22 @@ package oleksii.dankov;
 
 import oleksii.dankov.cli.CliArgumentHandler;
 import oleksii.dankov.merger.ResourceMergerImpl;
-import oleksii.dankov.merger.ResourcesMergingException;
-import oleksii.dankov.writer.DocumentWriterException;
+import oleksii.dankov.parser.DocumentsParserImpl;
 import oleksii.dankov.writer.DocumentWriterImpl;
-import org.apache.commons.cli.ParseException;
+
+import javax.xml.parsers.DocumentBuilderFactory;
 
 public class Merge {
 
-    public static void main(String[] args) throws ParseException, DocumentWriterException, ResourcesMergingException {
+    public static void main(String[] args) throws Exception {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        dbFactory.setValidating(false);
+        dbFactory.setIgnoringComments(true);
         new App(
                 CliArgumentHandler.fromArgs(args),
-                new DocumentWriterImpl(),
-                new ResourceMergerImpl()
+                new DocumentsParserImpl(dbFactory),
+                new ResourceMergerImpl(dbFactory),
+                new DocumentWriterImpl()
         ).process();
     }
 
