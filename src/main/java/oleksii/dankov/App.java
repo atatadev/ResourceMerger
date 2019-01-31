@@ -25,21 +25,21 @@ public class App {
 
     public void process() throws ResourcesMergingException, DocumentWriterException {
         if (argumentsHandler.allArgumentsPresent()) {
-            Map<String, List<File>> filesByQualifier = getFilesToMerge(argumentsHandler);
+            Map<String, List<File>> filesByQualifier = getFilesToMerge();
             for (Map.Entry<String, List<File>> filesForQualifier : filesByQualifier.entrySet()) {
                 Document mergedDocument = resourceMerger.mergeValues(filesForQualifier.getValue());
-                documentWriter.save(mergedDocument, createFileToSave(argumentsHandler, filesForQualifier));
+                documentWriter.save(mergedDocument, createFileToSave( filesForQualifier));
             }
         }
     }
 
 
-    private File createFileToSave(ArgumentsHandler argumentsHandler, Map.Entry<String, List<File>> entry) {
+    private File createFileToSave( Map.Entry<String, List<File>> entry) {
         String outputDirPath = argumentsHandler.getOutputDirectory().getAbsolutePath();
         return new File(outputDirPath + "/" + entry.getKey() + "/values.xml");
     }
 
-    private Map<String, List<File>> getFilesToMerge(ArgumentsHandler argumentsHandler) {
+    private Map<String, List<File>> getFilesToMerge() {
         File appResDirectory = argumentsHandler.getAppResDirectory();
         File[] libs = argumentsHandler.getLibsDirectory().listFiles();
         return getFilesToMerge(appResDirectory, libs);

@@ -41,13 +41,13 @@ public class CliArgumentHandler implements ArgumentsHandler {
     @Override
     public boolean allArgumentsPresent() {
         boolean present;
-        present = isArgumentPresent(LIBS_DIR_ARG_NAME);
-        present = isArgumentPresent(OUTPUT_ARG_NAME);
-        present = isArgumentPresent(APP_RES_DIR_ARG_NAME);
+        present = verifyArgumentPresent(LIBS_DIR_ARG_NAME);
+        present = verifyArgumentPresent(OUTPUT_ARG_NAME);
+        present = verifyArgumentPresent(APP_RES_DIR_ARG_NAME);
         return present;
     }
 
-    private boolean isArgumentPresent(String appResDirArgName) {
+    private boolean verifyArgumentPresent(String appResDirArgName) {
         if (!cmd.hasOption(appResDirArgName)) {
             System.out.println( "-" + appResDirArgName + " is mandatory argument");
             return false;
